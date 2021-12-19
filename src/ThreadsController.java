@@ -5,8 +5,8 @@ import java.util.ArrayList;
 public class ThreadsController extends Thread {
 	 ArrayList<ArrayList<DataOfSquare>> Squares= new ArrayList<ArrayList<DataOfSquare>>();
 	 Tuple headSnakePos;
-	 int sizeSnake=3;
-	 long speed = 50;
+	 int sizeSnake=5;
+	 long tickIntervalMills = 75;
 	 public static int directionSnake ;
 
 	 ArrayList<Tuple> positions = new ArrayList<Tuple>();
@@ -24,8 +24,8 @@ public class ThreadsController extends Thread {
 		Tuple headPos = new Tuple(headSnakePos.getX(),headSnakePos.getY());
 		positions.add(headPos);
 		
-		foodPosition= new Tuple(Window.height-1,Window.width-1);
-		spawnFood(foodPosition);
+		foodPosition = getValAleaNotInSnake();
+		showFood(foodPosition);
 
 	 }
 	 
@@ -43,7 +43,7 @@ public class ThreadsController extends Thread {
 	 //delay between each move of the snake
 	 private void pauser(){
 		 try {
-				sleep(speed);
+				sleep(tickIntervalMills);
 		 } catch (InterruptedException e) {
 				e.printStackTrace();
 		 }
@@ -51,13 +51,15 @@ public class ThreadsController extends Thread {
 	 
 	 //Checking if the snake bites itself or is eating
 	 private void checkCollision() {
+		 // posCritique is head location
 		 Tuple posCritique = positions.get(positions.size()-1);
 		 for(int i = 0;i<=positions.size()-2;i++){
 			 boolean biteItself = posCritique.getX()==positions.get(i).getX() && posCritique.getY()==positions.get(i).getY();
 			 if(biteItself){
 				stopTheGame();
 			 }
-		 }
+		 } 
+
 		 
 		 boolean eatingFood = posCritique.getX()==foodPosition.y && posCritique.getY()==foodPosition.x;
 		 if(eatingFood){
@@ -65,7 +67,7 @@ public class ThreadsController extends Thread {
 			 sizeSnake=sizeSnake+1;
 			 	foodPosition = getValAleaNotInSnake();
 
-			 spawnFood(foodPosition);	
+			 showFood(foodPosition);	
 		 }
 	 }
 	 
@@ -78,7 +80,7 @@ public class ThreadsController extends Thread {
 	 }
 	 
 	 //Put food in a position and displays it
-	 private void spawnFood(Tuple foodPositionIn){
+	 private void showFood(Tuple foodPositionIn){
 		 	Squares.get(foodPositionIn.x).get(foodPositionIn.y).lightMeUp(1);
 	 }
 	 
@@ -102,23 +104,32 @@ public class ThreadsController extends Thread {
 	 //Moves the head of the snake and refreshes the positions in the arraylist
 	 //1:right 2:left 3:top 4:bottom 0:nothing
 	 private void moveInterne(int dir){
-		 switch(dir){
-		 	case 4:
-				 headSnakePos.ChangeData(headSnakePos.x,(headSnakePos.y+1)%20);
-				 positions.add(new Tuple(headSnakePos.x,headSnakePos.y));
+		switch(dir){
+		 	case 4: {
+					// headSnakePos.ChangeData(headSnakePos.x,(headSnakePos.y+1)%20);
+					int y = Math.abs(headSnakePos.y + 1);
+					if (y >= 20) {
+						// y = y - 20;
+						stopTheGame();
+					}
+					headSnakePos.ChangeData(headSnakePos.x, y);
+					positions.add(new Tuple(headSnakePos.x, headSnakePos.y));
+				  }
 		 		break;
 		 	case 3:
 		 		if(headSnakePos.y-1<0){
-		 			 headSnakePos.ChangeData(headSnakePos.x,19);
+		 			stopTheGame();
+		 			// headSnakePos.ChangeData(headSnakePos.x,19);
 		 		 }
 		 		else{
-				 headSnakePos.ChangeData(headSnakePos.x,Math.abs(headSnakePos.y-1)%20);
+		 			headSnakePos.ChangeData(headSnakePos.x,Math.abs(headSnakePos.y-1)%20);
 		 		}
 				 positions.add(new Tuple(headSnakePos.x,headSnakePos.y));
 		 		break;
 		 	case 2:
 		 		 if(headSnakePos.x-1<0){
-		 			 headSnakePos.ChangeData(19,headSnakePos.y);
+		 			stopTheGame();
+		 			// headSnakePos.ChangeData(19,headSnakePos.y);
 		 		 }
 		 		 else{
 		 			 headSnakePos.ChangeData(Math.abs(headSnakePos.x-1)%20,headSnakePos.y);
@@ -127,9 +138,16 @@ public class ThreadsController extends Thread {
 
 		 		break;
 		 	case 1:
-				 headSnakePos.ChangeData(Math.abs(headSnakePos.x+1)%20,headSnakePos.y);
-				 positions.add(new Tuple(headSnakePos.x,headSnakePos.y));
-		 		 break;
+		 	{
+		 		int x =  Math.abs(headSnakePos.x + 1);
+				if (x >= 20) {
+						stopTheGame();
+						// x -= 20;
+					}		 		
+				headSnakePos.ChangeData(x, headSnakePos.y);
+				positions.add(new Tuple(headSnakePos.x,headSnakePos.y));
+		 	}
+		 	break;
 		 }
 	 }
 	 
